@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Simple Web Audio Player</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 600px;
+            margin: 2em auto;
+            background: #f9f9f9;
+        }
+        h1 {
+            text-align: center;
+        }
+        #playlist-items {
+            list-style: none;
+            padding: 0;
+        }
+        #playlist-items li {
+            margin: 0.5em 0;
+        }
+        #playlist-items a {
+            text-decoration: none;
+            color: #0074d9;
+        }
+        #playlist-items a:hover {
+            text-decoration: underline;
+        }
+        audio {
+            width: 100%;
+            margin: 1em 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Web Audio Player</h1>
+    <audio id="audio" controls>
+        <source id="audio-source" src="" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+    <ul id="playlist-items">
+        <!-- Playlist items will be generated here -->
+    </ul>
+    <script>
+    fetch('/api/playlist')
+    .then(res => res.json())
+    .then(files => {
+        const ul = document.getElementById('playlist-items');
+        ul.innerHTML = '';
+        files.forEach(file => {
+            const li = document.createElement('li');
+            li.innerHTML = `<a href="/playlist/${file}">${file}</a>`;
+            ul.appendChild(li);
+        });
+        // Optional: auto-play first track
+        if (files.length > 0) {
+            setSource(files[0]);
+        }
+        // Click to play
+        document.querySelectorAll('#playlist-items a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                setSource(this.getAttribute('href').replace('/playlist/', ''));
+                document.getElementById('audio').play();
+            });
+        });
+        function setSource(file) {
+            const ext = file.split('.').pop().toLowerCase();
+            let type = '';
+            if (ext === 'mp3') type = 'audio/mpeg';
+            else if (ext === 'webm') type = 'audio/webm';
+            else if (ext === 'mp4') type = 'audio/mp4';
+            document.getElementById('audio-source').src = `/playlist/${file}`;
+            document.getElementById('audio-source').type = type;
+            document.getElementById('audio').load();
+        }
+    });
+</script>
+</body>
+</html>
